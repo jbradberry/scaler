@@ -1,14 +1,49 @@
 import argparse
+import datetime
 import os
 import sqlite3
 
 
 def _list(args, cur):
-    _debug(args)
+    cur.execute(
+        """
+        SELECT l.id, l.name, count(1)
+        FROM list l
+        LEFT OUTER JOIN item i
+          ON l.id = i.list_id
+        GROUP BY l.id, l.name
+        ORDER BY l.id ASC;
+        """
+    )
+    data = list(cur)
+    if not data:
+        print("No lists have been created yet.")
+        return
+    for row in data:
+        print(f"{row[0]}: {row[1]} ({row[2]} items)")
 
 
 def _create(args, cur):
-    _debug(args)
+    name = input("list name: ")
+    items = []
+    print("input items (empty to stop)...")
+    while True:
+        item = input("item: ")
+        if not item:
+            break
+        items.append(item)
+
+    timestamp = datetime.datetime.now(datetime.timezone.utc)
+    cur.execute(
+        "INSERT INTO list (name, created, updated) VALUES (?, ?, ?);",
+        (name, timestamp, timestamp)
+    )
+    _id = cur.lastrowid
+    for i, item in enumerate(items, start=1):
+        cur.execute(
+            "INSERT INTO item (list_id, id, name, timestamp) VALUES (?, ?, ?, ?);",
+            (_id, i, item, timestamp)
+        )
 
 
 def _edit(args, cur):
