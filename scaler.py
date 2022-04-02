@@ -1,23 +1,25 @@
 import argparse
+import os
+import sqlite3
 
 
-def _list(args):
+def _list(args, cur):
     _debug(args)
 
 
-def _create(args):
+def _create(args, cur):
     _debug(args)
 
 
-def _edit(args):
+def _edit(args, cur):
     _debug(args)
 
 
-def _compare(args):
+def _compare(args, cur):
     _debug(args)
 
 
-def _compute(args):
+def _compute(args, cur):
     _debug(args)
 
 
@@ -48,4 +50,42 @@ if __name__ == '__main__':
     parser_compute.set_defaults(func=_compute)
 
     args = parser.parse_args()
-    args.func(args)
+
+    db_filename = 'scaler.db3'
+    with sqlite3.connect(db_filename) as conn:
+        cur = conn.cursor()
+        cur.executescript(
+            """
+            create table if not exists list (
+                id           integer primary key autoincrement not null,
+                name         text,
+                created      timestamptz,
+                updated      timestamptz,
+                calculated   timestamptz,
+                new_data     bool not null default false
+            );
+
+            create table if not exists item (
+                list_id      integer not null,
+                id           integer not null,
+                name         text,
+                timestamp    timestamptz
+            );
+
+            create table if not exists score (
+                list_id      integer not null,
+                id           integer not null,
+                value        real
+            );
+
+            create table if not exists comparison (
+                list_id      integer not null,
+                item1        integer not null,
+                item2        integer not null,
+                result       tinyint not null,
+                timestamp    timestamptz
+            );
+            """
+        )
+
+        args.func(args, cur)
