@@ -3,6 +3,7 @@ import datetime
 import os
 import random
 import sqlite3
+import sys
 
 
 def _list(args, cur):
@@ -25,22 +26,16 @@ def _list(args, cur):
 
 
 def _create(args, cur):
-    name = input("list name: ")
-    items = []
-    print("input items (empty to stop)...")
-    while True:
-        item = input("item: ")
-        if not item:
-            break
-        items.append(item)
-
     timestamp = datetime.datetime.now(datetime.timezone.utc)
     cur.execute(
         "INSERT INTO list (name, created, updated) VALUES (?, ?, ?);",
-        (name, timestamp, timestamp)
+        (args.name, timestamp, timestamp)
     )
     _id = cur.lastrowid
-    for i, item in enumerate(items, start=1):
+
+    items = [(i, line.strip()) for i, line in enumerate(sys.stdin.readlines(), start=1)]
+    timestamp = datetime.datetime.now(datetime.timezone.utc)
+    for i, item in items:
         cur.execute(
             "INSERT INTO item (list_id, id, name, timestamp) VALUES (?, ?, ?, ?);",
             (_id, i, item, timestamp)
@@ -103,6 +98,7 @@ if __name__ == '__main__':
     parser_list.set_defaults(func=_list)
 
     parser_create = subparsers.add_parser('create')
+    parser_create.add_argument('name')
     parser_create.set_defaults(func=_create)
 
     parser_edit = subparsers.add_parser('edit')
