@@ -1,6 +1,7 @@
 import argparse
 import datetime
 import os
+import random
 import sqlite3
 
 
@@ -51,7 +52,39 @@ def _edit(args, cur):
 
 
 def _compare(args, cur):
-    _debug(args)
+    cur.execute("SELECT * FROM list WHERE id = ?;", (args.list,))
+    if cur.fetchone() is None:
+        print(f"List {args.list} does not exist.")
+        return
+
+    cur.execute("SELECT id, name FROM item WHERE list_id = ? ORDER BY id ASC;", (args.list,))
+    data = list(cur)
+    if not data:
+        print(f"List {args.list} has no items to compare.")
+        return
+
+    while True:
+        (id1, name1), (id2, name2) = random.sample(data, 2)
+        print("Which item is preferred?\n")
+        print(f"1: {name1}")
+        print(f"2: {name2}")
+        print("0: both items are roughly equal\n")
+
+        choice = 'z'
+        while choice not in ('0', '1', '2', 'q'):
+            choice = input("'q' to stop: ")
+        if choice == 'q':
+            break
+
+        timestamp = datetime.datetime.now(datetime.timezone.utc)
+        cur.execute(
+            """
+            INSERT INTO comparison (list_id, item1, item2, result, timestamp)
+            VALUES (?, ?, ?, ?, ?);
+            """,
+            (args.list, id1, id2, int(choice), timestamp)
+        )
+        print()
 
 
 def _compute(args, cur):
