@@ -6,7 +6,34 @@ import sqlite3
 import sys
 
 
+def _list_detail(args, cur):
+    cur.execute("SELECT * FROM list WHERE id = ?;", (args.list,))
+    row = cur.fetchone()
+    if row is None:
+        print(f"List {args.list} does not exist.")
+        return
+
+    cur.execute(
+        """
+        SELECT id, name
+        FROM item
+        WHERE list_id = ?
+        ORDER BY id ASC;
+        """,
+        (args.list,)
+    )
+    items = list(cur)
+    print(f"{row[1]} ({len(items)} items)\n")
+
+    for i, item in items:
+        print(f"{i}: {item}")
+
+
 def _list(args, cur):
+    if args.list is not None:
+        _list_detail(args, cur)
+        return
+
     cur.execute(
         """
         SELECT l.id, l.name, count(1)
@@ -95,6 +122,7 @@ if __name__ == '__main__':
     subparsers = parser.add_subparsers()
 
     parser_list = subparsers.add_parser('list')
+    parser_list.add_argument('list', nargs='?', type=int, default=None)
     parser_list.set_defaults(func=_list)
 
     parser_create = subparsers.add_parser('create')
