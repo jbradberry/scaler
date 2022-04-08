@@ -148,33 +148,33 @@ if __name__ == '__main__':
         cur = conn.cursor()
         cur.executescript(
             """
-            create table if not exists list (
-                id           integer primary key autoincrement not null,
+            CREATE TABLE IF NOT EXISTS list (
+                id           integer PRIMARY KEY,
                 name         text,
                 created      timestamptz,
                 updated      timestamptz,
                 calculated   timestamptz,
-                new_data     bool not null default false
+                new_data     bool NOT NULL DEFAULT false
             );
 
-            create table if not exists item (
-                list_id      integer not null,
-                id           integer not null,
+            CREATE TABLE IF NOT EXISTS item (
+                list_id      integer NOT NULL,
+                id           integer NOT NULL,
                 name         text,
                 timestamp    timestamptz
             );
 
-            create table if not exists score (
-                list_id      integer not null,
-                id           integer not null,
+            CREATE TABLE IF NOT EXISTS score (
+                list_id      integer NOT NULL,
+                id           integer NOT NULL,
                 value        real
             );
 
-            create table if not exists comparison (
-                list_id      integer not null,
-                item1        integer not null,
-                item2        integer not null,
-                result       tinyint not null,
+            CREATE TABLE IF NOT EXISTS comparison (
+                list_id      integer NOT NULL,
+                item1        integer NOT NULL,
+                item2        integer NOT NULL,
+                result       tinyint NOT NULL,
                 timestamp    timestamptz
             );
             """
